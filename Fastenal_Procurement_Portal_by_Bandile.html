@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fastenal Procurement Portal — by Bandile Dlamini</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #F0F4FA;
+  --white:     #FFFFFF;
+  --border:    #D6E0EF;
+  --border2:   #B0C4DE;
+  --text:      #0A1628;
+  --sub:       #3A5070;
+  --muted:     #7A96B8;
+  --blue:      #1A4FA0;
+  --blue-dk:   #0F3270;
+  --blue-lt:   #EBF1FB;
+  --blue-md:   #BAD0F0;
+  --blue-vivid:#2563EB;
+  --green:     #0A7A4A;
+  --green-lt:  #E8F8F1;
+  --green-md:  #A0DDBF;
+  --amber:     #C47A00;
+  --amber-lt:  #FFF8E8;
+  --amber-md:  #F5D990;
+  --red:       #C02020;
+  --red-lt:    #FEF0F0;
+  --red-md:    #F5B8B8;
+  --purple:    #6030A0;
+  --purple-lt: #F3EEFF;
+  --sans: 'Inter', sans-serif;
+  --shadow-sm: 0 1px 3px rgba(10,22,40,.07), 0 1px 2px rgba(10,22,40,.04);
+  --shadow:    0 4px 14px rgba(10,22,40,.09), 0 2px 4px rgba(10,22,40,.04);
+  --shadow-md: 0 8px 28px rgba(10,22,40,.12), 0 3px 8px rgba(10,22,40,.05);
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; -webkit-font-smoothing: antialiased; }
+
+/* ── TOP BAR ── */
+.topbar {
+  height: 62px; background: var(--blue-dk);
+  border-bottom: 2px solid var(--blue);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 12px rgba(10,22,40,.25);
+}
+.topbar-brand { display: flex; align-items: center; gap: 14px; }
+.brand-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: var(--white); display: grid; place-items: center;
+  box-shadow: 0 2px 8px rgba(255,255,255,.18);
+  flex-shrink: 0;
+}
+.brand-icon svg { width: 22px; height: 22px; }
+.brand-name { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -.01em; }
+.brand-name span { color: #8DC3F8; }
+.brand-sub { font-size: 11px; color: #7DA8D4; font-weight: 400; margin-top: 2px; }
+
+.topbar-pills { display: flex; align-items: center; gap: 8px; }
+.req-pill {
+  font-size: 11px; font-weight: 600; letter-spacing: .01em;
+  padding: 5px 12px; border-radius: 20px;
+  display: flex; align-items: center; gap: 5px; border: 1.5px solid transparent;
+}
+.req-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.req-pill.r1 { background: rgba(139,195,248,.15); color: #8DC3F8; border-color: rgba(139,195,248,.3); }
+.req-pill.r2 { background: rgba(245,217,144,.15); color: #F5D990; border-color: rgba(245,217,144,.3); }
+.req-pill.r3 { background: rgba(160,221,191,.15); color: #A0DDBF; border-color: rgba(160,221,191,.3); }
+
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; color: #A0DDBF;
+  background: rgba(10,122,74,.25); border: 1px solid rgba(160,221,191,.35);
+  padding: 4px 10px; border-radius: 20px;
+}
+.pulse { width: 7px; height: 7px; border-radius: 50%; background: #A0DDBF; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(160,221,191,.5);} 50%{box-shadow:0 0 0 5px rgba(160,221,191,0);} }
+.clock { font-size: 12px; font-weight: 600; color: #7DA8D4; font-variant-numeric: tabular-nums; }
+
+/* ── NAV TABS ── */
+.nav-tabs {
+  background: var(--white); border-bottom: 2px solid var(--border);
+  display: flex; align-items: center; gap: 0; padding: 0 22px;
+  box-shadow: var(--shadow-sm); position: sticky; top: 62px; z-index: 90;
+}
+.nav-tab {
+  padding: 13px 20px; font-size: 13px; font-weight: 600; color: var(--muted);
+  border-bottom: 2.5px solid transparent; cursor: pointer;
+  transition: color .2s, border-color .2s; margin-bottom: -2px;
+  display: flex; align-items: center; gap: 7px; white-space: nowrap;
+}
+.nav-tab svg { width: 14px; height: 14px; stroke: currentColor; flex-shrink: 0; }
+.nav-tab:hover { color: var(--blue); }
+.nav-tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 700; }
+
+/* ── PANELS ── */
+.panel { display: none; }
+.panel.active { display: flex; }
+.panel-full { display: none; flex-direction: column; }
+.panel-full.active { display: flex; }
+
+/* ── APP LAYOUT ── */
+.app-body { display: flex; height: calc(100vh - 62px - 46px - 34px); overflow: hidden; }
+
+/* ── LEFT PANEL ── */
+.left-panel {
+  width: 370px; min-width: 300px; flex-shrink: 0;
+  background: var(--white); border-right: 1px solid var(--border);
+  overflow-y: auto; display: flex; flex-direction: column;
+}
+.left-panel::-webkit-scrollbar { width: 5px; }
+.left-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 5px; }
+
+.panel-section { border-bottom: 1px solid var(--border); }
+
+.section-header {
+  padding: 16px 20px 10px;
+  font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px; color: var(--sub);
+}
+.section-header::after { content:''; flex:1; height:1px; background: var(--border); }
+
+.req-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: .06em;
+  padding: 2px 7px; border-radius: 4px; text-transform: uppercase;
+}
+.req-badge.r1 { background: var(--blue-lt); color: var(--blue); }
+.req-badge.r2 { background: var(--amber-lt); color: var(--amber); }
+.req-badge.r3 { background: var(--green-lt); color: var(--green); }
+.req-badge.r4 { background: var(--purple-lt); color: var(--purple); }
+
+/* KPI GRID */
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 4px 18px 16px; }
+.kpi-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+  position: relative; overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: var(--acc, var(--blue)); border-radius: 10px 10px 0 0; }
+.kpi-card.a { --acc: var(--amber); }
+.kpi-card.g { --acc: var(--green); }
+.kpi-card.r { --acc: var(--red); }
+.kpi-label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; }
+.kpi-value { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
+.kpi-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+/* SUPPORT ITEMS */
+.support-list { padding: 4px 18px 16px; display: flex; flex-direction: column; gap: 8px; }
+.support-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.support-item:hover { border-color: var(--blue-md); box-shadow: var(--shadow-sm); }
+.support-icon {
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  background: var(--blue-lt); border: 1px solid var(--blue-md);
+  display: grid; place-items: center; margin-top: 1px;
+}
+.support-icon svg { width: 15px; height: 15px; stroke: var(--blue); fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+.support-title { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.support-desc { font-size: 11px; color: var(--sub); line-height: 1.6; }
+.support-tag {
+  margin-left: auto; flex-shrink: 0; align-self: flex-start;
+  font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 4px;
+  background: var(--blue-lt); color: var(--blue); border: 1px solid var(--blue-md);
+}
+
+/* PO LIST */
+.po-list { padding: 4px 18px 16px; display: flex; flex-direction: column; gap: 6px; }
+.po-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 13px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.po-row:hover { border-color: var(--green-md); box-shadow: var(--shadow-sm); }
+.po-id { font-size: 11px; font-weight: 700; color: var(--blue); flex-shrink: 0; letter-spacing: .02em; }
+.po-info { flex: 1; }
+.po-item { font-size: 12px; font-weight: 600; color: var(--text); }
+.po-vendor { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.po-amount { font-size: 12px; font-weight: 700; color: var(--text); flex-shrink: 0; text-align: right; }
+.po-status { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 6px; flex-shrink: 0; }
+.po-status.confirmed { background: var(--green-lt); color: var(--green); border: 1px solid var(--green-md); }
+.po-status.pending   { background: var(--amber-lt); color: var(--amber); border: 1px solid var(--amber-md); }
+.po-status.review    { background: var(--blue-lt);  color: var(--blue);  border: 1px solid var(--blue-md); }
+
+/* ── RIGHT PANEL ── */
+.right-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+
+.right-topbar {
+  padding: 16px 22px 14px; background: var(--white);
+  border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.rt-title { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
+.rt-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+.add-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--blue); color: #fff; border: none; border-radius: 9px;
+  padding: 10px 20px; font-family: var(--sans); font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: background .2s, box-shadow .2s;
+  box-shadow: 0 2px 8px rgba(26,79,160,.3);
+}
+.add-btn:hover { background: var(--blue-dk); box-shadow: 0 4px 14px rgba(26,79,160,.4); }
+
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.btn-outline {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--white); color: var(--sub); border: 1.5px solid var(--border);
+  border-radius: 9px; padding: 9px 16px; font-family: var(--sans); font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: border-color .2s, color .2s, background .2s;
+}
+.btn-outline:hover { border-color: var(--green-md); color: var(--green); background: var(--green-lt); }
+.btn-outline svg { stroke: currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+.excel-status { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+/* KANBAN */
+.kanban-board {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; padding: 16px 18px; overflow-y: auto; flex: 1;
+}
+.kanban-board::-webkit-scrollbar { width: 5px; }
+.kanban-board::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 5px; }
+
+.kb-col { display: flex; flex-direction: column; gap: 0; }
+.kb-col-header {
+  padding: 10px 13px; border-radius: 10px 10px 0 0;
+  font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  display: flex; align-items: center; justify-content: space-between;
+  border: 1.5px solid transparent; border-bottom: none;
+}
+.col-count { font-size: 11px; font-weight: 800; padding: 2px 9px; border-radius: 20px; }
+
+.col-new        .kb-col-header { background: var(--red-lt);   color: var(--red);   border-color: var(--red-md); }
+.col-new        .col-count     { background: var(--red-md);   color: var(--red); }
+.col-contacted  .kb-col-header { background: var(--amber-lt); color: var(--amber); border-color: var(--amber-md); }
+.col-contacted  .col-count     { background: var(--amber-md); color: var(--amber); }
+.col-negotiating .kb-col-header { background: var(--blue-lt); color: var(--blue);  border-color: var(--blue-md); }
+.col-negotiating .col-count    { background: var(--blue-md);  color: var(--blue); }
+.col-approved   .kb-col-header { background: var(--green-lt); color: var(--green); border-color: var(--green-md); }
+.col-approved   .col-count     { background: var(--green-md); color: var(--green); }
+
+.kb-col-drop {
+  flex: 1; min-height: 120px;
+  border: 1.5px solid var(--border2); border-top: none;
+  border-radius: 0 0 10px 10px; background: rgba(255,255,255,.75);
+  padding: 8px; display: flex; flex-direction: column; gap: 7px;
+  transition: border-color .2s, background .2s;
+}
+.col-new         .kb-col-drop { border-color: var(--red-md); }
+.col-contacted   .kb-col-drop { border-color: var(--amber-md); }
+.col-negotiating .kb-col-drop { border-color: var(--blue-md); }
+.col-approved    .kb-col-drop { border-color: var(--green-md); }
+.kb-col-drop.drag-over { background: var(--blue-lt); border-color: var(--blue); }
+
+/* SUPPLIER CARDS */
+.issue-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 9px; padding: 12px 14px; cursor: grab;
+  transition: border-color .2s, transform .15s, box-shadow .15s;
+  position: relative; overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.issue-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background: var(--ca, var(--muted)); border-radius: 9px 0 0 9px; }
+.issue-card[data-priority="critical"] { --ca: var(--red); }
+.issue-card[data-priority="high"]     { --ca: var(--amber); }
+.issue-card[data-priority="medium"]   { --ca: var(--blue); }
+.issue-card[data-priority="low"]      { --ca: var(--green); }
+.issue-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.issue-card.dragging { opacity: .45; transform: scale(.96); cursor: grabbing; }
+
+.ic-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; padding-left: 8px; }
+.ic-id { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: .05em; }
+.ic-priority { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 5px; letter-spacing: .04em; text-transform: uppercase; }
+.ic-priority.critical { background: var(--red-lt);   color: var(--red);   }
+.ic-priority.high     { background: var(--amber-lt); color: var(--amber); }
+.ic-priority.medium   { background: var(--blue-lt);  color: var(--blue);  }
+.ic-priority.low      { background: var(--green-lt); color: var(--green); }
+.ic-type-tag {
+  display: inline-block; margin-left: 8px; margin-bottom: 5px;
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  padding: 2px 7px; border-radius: 4px;
+  background: var(--purple-lt); color: var(--purple);
+}
+.ic-title { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.45; margin-bottom: 7px; padding-left: 8px; }
+.ic-meta { font-size: 10px; color: var(--muted); padding-left: 8px; display: flex; flex-direction: column; gap: 2px; }
+
+/* LOG */
+.issue-log-section {
+  border-top: 1px solid var(--border); flex-shrink: 0;
+  max-height: 180px; overflow-y: auto; background: var(--white);
+}
+.issue-log-section::-webkit-scrollbar { width: 4px; }
+.issue-log-section::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+.log-header {
+  padding: 10px 22px 7px; font-size: 10px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--sub);
+  display: flex; align-items: center; gap: 8px;
+  position: sticky; top: 0; background: var(--white);
+  border-bottom: 1px solid var(--border); z-index: 1;
+}
+.log-header::after { content:''; flex:1; height:1px; background: var(--border); }
+.log-entries { padding: 6px 22px 12px; display: flex; flex-direction: column; gap: 4px; }
+.log-entry { display: flex; align-items: baseline; gap: 10px; font-size: 11px; }
+.log-time   { color: var(--muted); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.log-action { color: var(--blue); flex-shrink: 0; font-weight: 700; }
+.log-msg    { color: var(--sub); }
+
+/* ── FULL PANEL LAYOUTS ── */
+
+/* QUOTES PANEL */
+.quotes-panel { flex-direction: column; overflow: hidden; }
+.quotes-body { display: flex; flex: 1; overflow: hidden; }
+.quotes-left { width: 370px; min-width: 300px; background: var(--white); border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
+.quotes-right { flex: 1; overflow-y: auto; padding: 18px 22px; }
+
+/* COMMS PANEL */
+.comms-body { display: flex; flex: 1; overflow: hidden; }
+.comms-left { width: 370px; min-width: 300px; background: var(--white); border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
+.comms-right { flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+
+/* HQ PANEL */
+.hq-body { flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; gap: 16px; flex-wrap: wrap; align-content: flex-start; }
+
+/* ── QUOTE TABLE ── */
+.quote-table-wrapper { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 16px; }
+.quote-table-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.quote-table-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.quote-table-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+table.qt { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.qt th { text-align: left; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; font-size: 9px; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--bg); }
+table.qt td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--sub); vertical-align: middle; }
+table.qt tr:last-child td { border-bottom: none; }
+table.qt td.bold { font-weight: 700; color: var(--text); }
+table.qt td.num { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text); }
+.status-chip { font-size: 9px; font-weight: 700; padding: 3px 9px; border-radius: 5px; text-transform: uppercase; letter-spacing: .05em; }
+.status-chip.confirmed { background: var(--green-lt); color: var(--green); border: 1px solid var(--green-md); }
+.status-chip.pending   { background: var(--amber-lt); color: var(--amber); border: 1px solid var(--amber-md); }
+.status-chip.review    { background: var(--blue-lt);  color: var(--blue);  border: 1px solid var(--blue-md); }
+.status-chip.expired   { background: var(--red-lt);   color: var(--red);   border: 1px solid var(--red-md); }
+
+/* CONTRACT CARDS */
+.contract-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px 18px; box-shadow: var(--shadow-sm); margin-bottom: 12px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.contract-card:hover { border-color: var(--blue-md); box-shadow: var(--shadow); }
+.cc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cc-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.cc-id { font-size: 10px; color: var(--muted); font-weight: 600; }
+.cc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cc-field { background: var(--bg); border-radius: 7px; padding: 8px 12px; }
+.cc-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 3px; }
+.cc-val { font-size: 12px; font-weight: 600; color: var(--text); }
+
+/* COMMS TRACKER */
+.comms-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px;
+  box-shadow: var(--shadow-sm); transition: border-color .2s;
+}
+.comms-card:hover { border-color: var(--blue-md); }
+.comms-avatar {
+  width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0;
+  background: var(--blue-lt); border: 1px solid var(--blue-md);
+  display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--blue);
+}
+.comms-supplier { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.comms-last { font-size: 11px; color: var(--sub); margin-bottom: 6px; }
+.comms-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.comms-tag { font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: .05em; }
+.comms-tag.call     { background: var(--blue-lt); color: var(--blue); border: 1px solid var(--blue-md); }
+.comms-tag.email    { background: var(--amber-lt); color: var(--amber); border: 1px solid var(--amber-md); }
+.comms-tag.complaint { background: var(--red-lt); color: var(--red); border: 1px solid var(--red-md); }
+.comms-tag.resolved { background: var(--green-lt); color: var(--green); border: 1px solid var(--green-md); }
+.comms-tag.coord    { background: var(--purple-lt); color: var(--purple); border: 1px solid #DDD6FE; }
+.comms-time { margin-left: auto; font-size: 10px; color: var(--muted); flex-shrink: 0; font-weight: 600; }
+
+/* COMPLAINT LOG */
+.complaint-section { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); }
+.cs-header { padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--red-lt); display: flex; align-items: center; gap: 8px; }
+.cs-title { font-size: 13px; font-weight: 700; color: var(--red); }
+.cs-entry { padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px; }
+.cs-entry:last-child { border-bottom: none; }
+.cs-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.cs-dot.open     { background: var(--red); }
+.cs-dot.resolved { background: var(--green); }
+.cs-body { flex: 1; }
+.cs-who  { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.cs-desc { font-size: 11px; color: var(--sub); line-height: 1.55; }
+.cs-meta { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+/* HQ CARDS */
+.hq-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+  padding: 18px; box-shadow: var(--shadow-sm); flex: 1; min-width: 260px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.hq-card:hover { border-color: var(--blue-md); box-shadow: var(--shadow); }
+.hq-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.hq-icon {
+  width: 36px; height: 36px; border-radius: 9px; background: var(--blue-lt);
+  border: 1px solid var(--blue-md); display: grid; place-items: center; flex-shrink: 0;
+}
+.hq-icon svg { width: 17px; height: 17px; stroke: var(--blue); fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+.hq-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.hq-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.hq-item  { display: flex; align-items: flex-start; gap: 9px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.hq-item:last-child { border-bottom: none; }
+.hq-bullet { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); flex-shrink: 0; margin-top: 5px; }
+.hq-item-text { font-size: 11px; color: var(--sub); line-height: 1.55; flex: 1; }
+.hq-item-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: var(--blue-lt); color: var(--blue); border: 1px solid var(--blue-md); flex-shrink: 0; text-transform: uppercase; letter-spacing: .05em; }
+
+/* QUOTES LEFT PANEL ITEMS */
+.ql-item {
+  padding: 14px 18px; border-bottom: 1px solid var(--border); cursor: pointer;
+  transition: background .15s;
+}
+.ql-item:hover, .ql-item.active { background: var(--blue-lt); }
+.ql-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.ql-type { font-size: 10px; color: var(--muted); margin-bottom: 6px; }
+.ql-footer { display: flex; align-items: center; justify-content: space-between; }
+
+/* FORM MODAL */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(10,22,40,.55); z-index:200; align-items:center; justify-content:center; backdrop-filter: blur(4px); }
+.modal-overlay.open { display:flex; }
+.modal { background: var(--white); border: 1px solid var(--border); border-radius: 14px; width: 540px; max-width: 95vw; max-height: 90vh; overflow-y: auto; padding: 30px; box-shadow: var(--shadow-md); }
+.modal-title { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -.02em; margin-bottom: 4px; }
+.modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 22px; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 11px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: .07em; display: block; margin-bottom: 5px; }
+.form-input, .form-select, .form-textarea {
+  width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 10px 13px; color: var(--text);
+  font-family: var(--sans); font-size: 13px; outline: none; transition: border-color .2s, box-shadow .2s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,79,160,.1); background: var(--white); }
+.form-select option { background: var(--white); }
+.form-textarea { min-height: 80px; resize: vertical; line-height: 1.6; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 22px; justify-content: flex-end; }
+.btn-cancel { padding: 10px 20px; border-radius: 8px; border: 1.5px solid var(--border); background: transparent; color: var(--sub); font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-cancel:hover { border-color: var(--border2); }
+.btn-submit { padding: 10px 22px; border-radius: 8px; border: none; background: var(--blue); color: #fff; font-family: var(--sans); font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(26,79,160,.3); }
+.btn-submit:hover { background: var(--blue-dk); }
+
+/* RIGHT PANEL WITH LOG */
+.right-panel-inner { flex:1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* FOOTER */
+.credit-bar {
+  height: 34px; background: var(--blue-dk); border-top: 1px solid #1A3A6A;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 11px; color: #7DA8D4; flex-shrink: 0;
+}
+.credit-bar .credit-name { font-weight: 700; color: #8DC3F8; }
+.credit-bar .credit-dot { width: 3px; height: 3px; border-radius: 50%; background: #3A5070; }
+.credit-bar a { color: #A0DDBF; font-weight: 600; text-decoration: none; }
+.credit-bar a:hover { text-decoration: underline; }
+
+/* SECTION DIVIDER */
+.section-div { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 12px 0 6px; border-bottom: 1px solid var(--border); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.section-div::after { content:''; flex:1; height:1px; background: var(--border); }
+
+/* SKILL SELECTOR (PANEL 1) */
+.skill-selector-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 4px 18px 16px; }
+.skill-chip {
+  border: 1.5px solid var(--border); border-radius: 9px; padding: 12px 10px; cursor: pointer;
+  text-align: center; background: var(--white); transition: border-color .2s, background .2s, box-shadow .2s;
+}
+.skill-chip:hover { border-color: var(--blue-md); background: var(--blue-lt); box-shadow: var(--shadow-sm); }
+.skill-chip.selected { border-color: var(--blue); background: var(--blue-lt); box-shadow: 0 0 0 3px rgba(26,79,160,.1); }
+.skill-chip-icon { font-size: 20px; margin-bottom: 5px; }
+.skill-chip-label { font-size: 10px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: .05em; }
+.skill-chip.selected .skill-chip-label { color: var(--blue); }
+
+.exp-selector { padding: 4px 18px 16px; }
+.exp-label { font-size: 11px; color: var(--sub); margin-bottom: 8px; font-weight: 600; }
+.exp-bar { display: flex; gap: 6px; }
+.exp-btn {
+  flex: 1; padding: 8px; border-radius: 8px; border: 1.5px solid var(--border);
+  background: var(--white); cursor: pointer; font-family: var(--sans); font-size: 11px;
+  font-weight: 700; color: var(--sub); transition: all .2s; text-align: center;
+}
+.exp-btn:hover { border-color: var(--blue-md); color: var(--blue); background: var(--blue-lt); }
+.exp-btn.active { border-color: var(--blue); background: var(--blue); color: #fff; }
+
+.profile-preview {
+  margin: 4px 18px 16px; background: var(--blue-lt); border: 1px solid var(--blue-md);
+  border-radius: 10px; padding: 14px;
+}
+.pp-name { font-size: 14px; font-weight: 800; color: var(--blue-dk); margin-bottom: 3px; }
+.pp-sub  { font-size: 11px; color: var(--blue); margin-bottom: 10px; }
+.pp-skills { display: flex; flex-wrap: wrap; gap: 5px; }
+.pp-skill { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 5px; background: var(--white); color: var(--blue); border: 1px solid var(--blue-md); }
+
+@media (max-width: 960px) {
+  .app-body { flex-direction: column; height: auto; overflow: auto; }
+  .left-panel, .quotes-left, .comms-left { width: 100%; min-width: 0; max-height: none; border-right: none; border-bottom: 1px solid var(--border); }
+  .kanban-board { grid-template-columns: repeat(2,1fr); }
+  .topbar-pills { display: none; }
+  .right-panel { height: auto; min-height: 600px; }
+  .hq-card { min-width: 100%; }
+}
+@media (max-width: 560px) {
+  .kanban-board { grid-template-columns: 1fr; }
+  .topbar { padding: 0 16px; }
+  .form-row { grid-template-columns: 1fr; }
+  .skill-selector-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── TOP BAR ── -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Fastenal bolt/fastener icon -->
+        <rect x="9" y="1" width="4" height="14" rx="2" fill="#1A4FA0"/>
+        <path d="M6 8h10M6 11h10" stroke="#1A4FA0" stroke-width="1.5"/>
+        <circle cx="11" cy="18" r="3" fill="#1A4FA0"/>
+        <path d="M3 4l2 2M19 4l-2 2M11 1v2" stroke="#1A4FA0" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">FASTENAL <span>PROCUREMENT</span></div>
+      <div class="brand-sub">North America's Largest Fastener Distributor — Sourcing & Supplier Development</div>
+    </div>
+  </div>
+
+  <div class="topbar-pills">
+    <span class="req-pill r1"><span class="dot"></span> Product & Skills Assessment</span>
+    <span class="req-pill r2"><span class="dot"></span> Quotes & Contracts</span>
+    <span class="req-pill r3"><span class="dot"></span> Supplier Relations</span>
+  </div>
+
+  <div class="topbar-right">
+    <div class="live-badge"><div class="pulse"></div> LIVE</div>
+    <div class="clock" id="clock"></div>
+  </div>
+</header>
+
+<!-- ── NAV TABS ── -->
+<nav class="nav-tabs">
+  <div class="nav-tab active" data-tab="skills" onclick="switchTab('skills')">
+    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3.5"/><path d="M2 14s1-3 6-3 6 3 6 3"/></svg>
+    Product & Skills
+  </div>
+  <div class="nav-tab" data-tab="quotes" onclick="switchTab('quotes')">
+    <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>
+    Quotes & Contracts
+  </div>
+  <div class="nav-tab" data-tab="comms" onclick="switchTab('comms')">
+    <svg viewBox="0 0 16 16" fill="none"><path d="M14 10.5a1.5 1.5 0 01-1.5 1.5H5l-3 3V3.5A1.5 1.5 0 013.5 2h9A1.5 1.5 0 0114 3.5v7z"/></svg>
+    Supplier Relations
+  </div>
+  <div class="nav-tab" data-tab="hq" onclick="switchTab('hq')">
+    <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M2 6.5h12M6 3v3.5M10 3v3.5"/></svg>
+    HQ Coordination
+  </div>
+  <div class="nav-tab" data-tab="suppliers" onclick="switchTab('suppliers')">
+    <svg viewBox="0 0 16 16" fill="none"><circle cx="5" cy="5" r="2.5"/><circle cx="11" cy="5" r="2.5"/><path d="M1 13s1-2.5 4-2.5 4 2.5 4 2.5M9.5 11s.5-1 1.5-1 1.5 1 1.5 1"/></svg>
+    New Suppliers
+  </div>
+</nav>
+
+<!-- ══════════════════════ TAB 1: SKILLS & PRODUCTS ══════════════════════ -->
+<div class="panel active app-body" id="tab-skills">
+  <aside class="left-panel">
+
+    <div class="panel-section">
+      <div class="section-header">My Procurement Profile <span class="req-badge r1">Self-Assessment</span></div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Hand Tool SKUs</div>
+          <div class="kpi-value">240+</div>
+          <div class="kpi-sub">Sourced & evaluated</div>
+        </div>
+        <div class="kpi-card a">
+          <div class="kpi-label">Electrical Items</div>
+          <div class="kpi-value">88</div>
+          <div class="kpi-sub">Active in pipeline</div>
+        </div>
+        <div class="kpi-card g">
+          <div class="kpi-label">Materials Specs</div>
+          <div class="kpi-value">35</div>
+          <div class="kpi-sub">Steel, alloy, polymer</div>
+        </div>
+        <div class="kpi-card r">
+          <div class="kpi-label">Cert. Compliance</div>
+          <div class="kpi-value">98%</div>
+          <div class="kpi-sub">ANSI, UL, RoHS</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-header">Select Product Category <span class="req-badge r1">Area 1</span></div>
+      <div class="skill-selector-grid" id="cat-grid">
+        <div class="skill-chip selected" onclick="toggleCat(this,'Hand Tools')">
+          <div class="skill-chip-icon">🔧</div>
+          <div class="skill-chip-label">Hand Tools</div>
+        </div>
+        <div class="skill-chip" onclick="toggleCat(this,'Power Tools')">
+          <div class="skill-chip-icon">🔩</div>
+          <div class="skill-chip-label">Power Tools</div>
+        </div>
+        <div class="skill-chip" onclick="toggleCat(this,'Fasteners')">
+          <div class="skill-chip-icon">🪛</div>
+          <div class="skill-chip-label">Fasteners</div>
+        </div>
+        <div class="skill-chip selected" onclick="toggleCat(this,'Electrical')">
+          <div class="skill-chip-icon">⚡</div>
+          <div class="skill-chip-label">Electrical</div>
+        </div>
+        <div class="skill-chip" onclick="toggleCat(this,'Safety Gear')">
+          <div class="skill-chip-icon">🦺</div>
+          <div class="skill-chip-label">Safety Gear</div>
+        </div>
+        <div class="skill-chip selected" onclick="toggleCat(this,'Materials')">
+          <div class="skill-chip-icon">🏗️</div>
+          <div class="skill-chip-label">Materials</div>
+        </div>
+        <div class="skill-chip" onclick="toggleCat(this,'Hydraulics')">
+          <div class="skill-chip-icon">🔄</div>
+          <div class="skill-chip-label">Hydraulics</div>
+        </div>
+        <div class="skill-chip" onclick="toggleCat(this,'Cutting')">
+          <div class="skill-chip-icon">✂️</div>
+          <div class="skill-chip-label">Cutting Tools</div>
+        </div>
+        <div class="skill-chip" onclick="toggleCat(this,'Welding')">
+          <div class="skill-chip-icon">🔥</div>
+          <div class="skill-chip-label">Welding</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-header">Experience Level <span class="req-badge r1">Area 1</span></div>
+      <div class="exp-selector">
+        <div class="exp-label">Hand Tools expertise</div>
+        <div class="exp-bar" id="exp-hand">
+          <button class="exp-btn" onclick="setExp('hand',this,'Junior')">Junior</button>
+          <button class="exp-btn active" onclick="setExp('hand',this,'Mid')">Mid</button>
+          <button class="exp-btn" onclick="setExp('hand',this,'Senior')">Senior</button>
+          <button class="exp-btn" onclick="setExp('hand',this,'Expert')">Expert</button>
+        </div>
+      </div>
+      <div class="exp-selector">
+        <div class="exp-label">Electrical Systems expertise</div>
+        <div class="exp-bar" id="exp-elec">
+          <button class="exp-btn" onclick="setExp('elec',this,'Junior')">Junior</button>
+          <button class="exp-btn" onclick="setExp('elec',this,'Mid')">Mid</button>
+          <button class="exp-btn active" onclick="setExp('elec',this,'Senior')">Senior</button>
+          <button class="exp-btn" onclick="setExp('elec',this,'Expert')">Expert</button>
+        </div>
+      </div>
+      <div class="exp-selector" style="padding-bottom:16px">
+        <div class="exp-label">Materials & Specifications expertise</div>
+        <div class="exp-bar" id="exp-mat">
+          <button class="exp-btn" onclick="setExp('mat',this,'Junior')">Junior</button>
+          <button class="exp-btn" onclick="setExp('mat',this,'Mid')">Mid</button>
+          <button class="exp-btn active" onclick="setExp('mat',this,'Senior')">Senior</button>
+          <button class="exp-btn" onclick="setExp('mat',this,'Expert')">Expert</button>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <main class="right-panel">
+    <div class="right-topbar">
+      <div>
+        <div class="rt-title">Product Characteristics & Skill Profile</div>
+        <div class="rt-sub">Select categories and experience levels on the left · Your profile updates live</div>
+      </div>
+    </div>
+
+    <div style="flex:1; overflow-y:auto; padding:18px 22px; display:flex; flex-direction:column; gap:14px;">
+
+      <!-- Profile Preview -->
+      <div class="profile-preview">
+        <div class="pp-name">Bandile Dlamini — Procurement Specialist</div>
+        <div class="pp-sub">Fastenal — North America · +886 900 167 900</div>
+        <div class="pp-skills" id="profile-skills">
+          <span class="pp-skill">Hand Tools · Mid</span>
+          <span class="pp-skill">Electrical · Senior</span>
+          <span class="pp-skill">Materials · Senior</span>
+        </div>
+      </div>
+
+      <!-- Hand Tools -->
+      <div class="quote-table-wrapper">
+        <div class="quote-table-header">
+          <div>
+            <div class="quote-table-title">🔧 Hand Tools — Product Characteristics</div>
+            <div class="quote-table-sub">Key specs to evaluate when sourcing and qualifying hand tools</div>
+          </div>
+        </div>
+        <table class="qt">
+          <thead><tr><th>Characteristic</th><th>Standard / Spec</th><th>Priority</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td class="bold">Material Grade</td><td>Chrome-vanadium / Drop-forged steel</td><td><span class="status-chip confirmed">Critical</span></td><td class="num">CV40 or higher</td></tr>
+            <tr><td class="bold">Torque Rating</td><td>ANSI / ASME B107</td><td><span class="status-chip confirmed">Critical</span></td><td>Rated in Nm & ft-lb</td></tr>
+            <tr><td class="bold">Finish / Coating</td><td>Satin Chrome, Black Oxide</td><td><span class="status-chip review">Medium</span></td><td>Corrosion resistance</td></tr>
+            <tr><td class="bold">Handle Ergonomics</td><td>Bi-material, non-slip grip</td><td><span class="status-chip pending">High</span></td><td>OSHA ergonomic req.</td></tr>
+            <tr><td class="bold">Certification</td><td>ASME, DIN, ISO 3316</td><td><span class="status-chip confirmed">Critical</span></td><td>Third-party lab verified</td></tr>
+            <tr><td class="bold">MOQ Range</td><td>500–5,000 pcs per SKU</td><td><span class="status-chip review">Medium</span></td><td>Fastenal volume tiers</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Electrical -->
+      <div class="quote-table-wrapper">
+        <div class="quote-table-header">
+          <div>
+            <div class="quote-table-title">⚡ Electrical Systems — Product Characteristics</div>
+            <div class="quote-table-sub">Compliance and performance specs for electrical procurement</div>
+          </div>
+        </div>
+        <table class="qt">
+          <thead><tr><th>Characteristic</th><th>Standard / Spec</th><th>Priority</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td class="bold">Voltage Rating</td><td>120V / 240V / 480V AC</td><td><span class="status-chip confirmed">Critical</span></td><td>North American grid</td></tr>
+            <tr><td class="bold">UL Listing</td><td>UL 508A / UL 489</td><td><span class="status-chip confirmed">Critical</span></td><td>Mandatory for US market</td></tr>
+            <tr><td class="bold">IP / NEMA Rating</td><td>IP65 min / NEMA 4X</td><td><span class="status-chip pending">High</span></td><td>Industrial environments</td></tr>
+            <tr><td class="bold">Wire Gauge Compatibility</td><td>AWG 10–4 (heavy) / 22–14 (control)</td><td><span class="status-chip review">Medium</span></td><td>Match connector specs</td></tr>
+            <tr><td class="bold">RoHS Compliance</td><td>EU RoHS 2 / REACH</td><td><span class="status-chip pending">High</span></td><td>Export requirement</td></tr>
+            <tr><td class="bold">Operating Temp</td><td>-40°C to +85°C</td><td><span class="status-chip review">Medium</span></td><td>Industrial range</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Materials -->
+      <div class="quote-table-wrapper">
+        <div class="quote-table-header">
+          <div>
+            <div class="quote-table-title">🏗️ Materials — Product Characteristics</div>
+            <div class="quote-table-sub">Steel, alloy, polymer, and composite material evaluation criteria</div>
+          </div>
+        </div>
+        <table class="qt">
+          <thead><tr><th>Material Type</th><th>Grade / Spec</th><th>Priority</th><th>Key Property</th></tr></thead>
+          <tbody>
+            <tr><td class="bold">Carbon Steel</td><td>ASTM A36 / SAE 1045</td><td><span class="status-chip confirmed">Critical</span></td><td>Tensile ≥ 400 MPa</td></tr>
+            <tr><td class="bold">Stainless Steel</td><td>316L / 304</td><td><span class="status-chip pending">High</span></td><td>Corrosion resistance</td></tr>
+            <tr><td class="bold">Alloy Steel</td><td>4140 / 4340 Chromoly</td><td><span class="status-chip confirmed">Critical</span></td><td>High-strength tooling</td></tr>
+            <tr><td class="bold">Polymer / Nylon</td><td>PA66, POM, HDPE</td><td><span class="status-chip review">Medium</span></td><td>Vibration dampening</td></tr>
+            <tr><td class="bold">Aluminium Alloy</td><td>6061-T6 / 7075</td><td><span class="status-chip pending">High</span></td><td>Lightweight structures</td></tr>
+            <tr><td class="bold">Mill Certifications</td><td>EN 10204 3.1 / CMTR</td><td><span class="status-chip confirmed">Critical</span></td><td>Traceability required</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════ TAB 2: QUOTES & CONTRACTS ══════════════════════ -->
+<div class="panel-full" id="tab-quotes" style="height:calc(100vh - 62px - 46px - 34px);">
+  <div class="right-topbar" style="border-bottom:1px solid var(--border); flex-shrink:0;">
+    <div>
+      <div class="rt-title">Supplier Quotes & Contract Details</div>
+      <div class="rt-sub">Log incoming quotes, confirm pricing, and track contract status</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="add-btn" onclick="openQuoteModal()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        Log New Quote
+      </button>
+    </div>
+  </div>
+  <div class="quotes-body" style="flex:1; overflow:hidden;">
+    <div class="quotes-left">
+      <div class="section-header" style="padding:16px 18px 10px;">Suppliers <span class="req-badge r2">Active Quotes</span></div>
+      <div id="quotes-supplier-list">
+        <div class="ql-item active" onclick="selectQuote(this)">
+          <div class="ql-name">Apex Tool Group</div>
+          <div class="ql-type">Hand Tools · Wrenches & Sockets</div>
+          <div class="ql-footer">
+            <span class="status-chip confirmed">Confirmed</span>
+            <span style="font-size:10px;color:var(--muted);">$182,400</span>
+          </div>
+        </div>
+        <div class="ql-item" onclick="selectQuote(this)">
+          <div class="ql-name">Hubbell Wiring</div>
+          <div class="ql-type">Electrical · Connectors & Outlets</div>
+          <div class="ql-footer">
+            <span class="status-chip pending">Pending</span>
+            <span style="font-size:10px;color:var(--muted);">$94,700</span>
+          </div>
+        </div>
+        <div class="ql-item" onclick="selectQuote(this)">
+          <div class="ql-name">Parker Hannifin</div>
+          <div class="ql-type">Materials · Steel Fittings</div>
+          <div class="ql-footer">
+            <span class="status-chip review">In Review</span>
+            <span style="font-size:10px;color:var(--muted);">$310,000</span>
+          </div>
+        </div>
+        <div class="ql-item" onclick="selectQuote(this)">
+          <div class="ql-name">Stanley Black & Decker</div>
+          <div class="ql-type">Hand Tools · Power & Cutting</div>
+          <div class="ql-footer">
+            <span class="status-chip confirmed">Confirmed</span>
+            <span style="font-size:10px;color:var(--muted);">$450,000</span>
+          </div>
+        </div>
+        <div class="ql-item" onclick="selectQuote(this)">
+          <div class="ql-name">Eaton Corp.</div>
+          <div class="ql-type">Electrical · Circuit Protection</div>
+          <div class="ql-footer">
+            <span class="status-chip expired">Expired</span>
+            <span style="font-size:10px;color:var(--muted);">$67,500</span>
+          </div>
+        </div>
+        <div id="dyn-quote-list"></div>
+      </div>
+    </div>
+    <div class="quotes-right">
+
+      <div class="section-div">Active Quote — Apex Tool Group</div>
+
+      <!-- Quote Table -->
+      <div class="quote-table-wrapper">
+        <div class="quote-table-header">
+          <div>
+            <div class="quote-table-title">Quote Log — QT-2024-041</div>
+            <div class="quote-table-sub">Received: 18 Jun 2025 · Valid until: 18 Sep 2025</div>
+          </div>
+          <span class="status-chip confirmed">Confirmed</span>
+        </div>
+        <table class="qt">
+          <thead><tr><th>Item / SKU</th><th>Description</th><th>Unit Price</th><th>Qty</th><th>Total</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="bold">APX-WR-12</td><td>12pc Combination Wrench Set (CV steel)</td><td class="num">$24.80</td><td class="num">2,000</td><td class="num">$49,600</td><td><span class="status-chip confirmed">Confirmed</span></td></tr>
+            <tr><td class="bold">APX-SK-72</td><td>72-Tooth Ratchet Socket Set 3/8"</td><td class="num">$38.50</td><td class="num">1,500</td><td class="num">$57,750</td><td><span class="status-chip confirmed">Confirmed</span></td></tr>
+            <tr><td class="bold">APX-PL-08</td><td>8pc Pliers Set (needle nose + lineman)</td><td class="num">$31.20</td><td class="num">1,500</td><td class="num">$46,800</td><td><span class="status-chip pending">Pending</span></td></tr>
+            <tr><td class="bold">APX-SC-04</td><td>4pc Screwdriver Set (magnetic tip)</td><td class="num">$9.50</td><td class="num">3,000</td><td class="num">$28,500</td><td><span class="status-chip review">Review</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Contract Details -->
+      <div class="section-div">Contract Details — CON-2024-041</div>
+
+      <div class="contract-card">
+        <div class="cc-top">
+          <div>
+            <div class="cc-name">Apex Tool Group — Framework Agreement</div>
+            <div class="cc-id">Contract ID: CON-2024-041 · Signed: 01 Jul 2025</div>
+          </div>
+          <span class="status-chip confirmed">Active</span>
+        </div>
+        <div class="cc-grid">
+          <div class="cc-field"><div class="cc-label">Contract Value</div><div class="cc-val">$182,400 USD</div></div>
+          <div class="cc-field"><div class="cc-label">Contract Term</div><div class="cc-val">12 Months (renews Jan 2026)</div></div>
+          <div class="cc-field"><div class="cc-label">Payment Terms</div><div class="cc-val">Net 45 · 2% 10-day discount</div></div>
+          <div class="cc-field"><div class="cc-label">Delivery Lead Time</div><div class="cc-val">8–12 business days</div></div>
+          <div class="cc-field"><div class="cc-label">Warranty</div><div class="cc-val">Lifetime limited — manufacturer defect</div></div>
+          <div class="cc-field"><div class="cc-label">Incoterms</div><div class="cc-val">DDP — Fastenal DC, Winona MN</div></div>
+        </div>
+      </div>
+
+      <div class="contract-card">
+        <div class="cc-top">
+          <div>
+            <div class="cc-name">Parker Hannifin — Materials Supply Agreement</div>
+            <div class="cc-id">Contract ID: CON-2024-039 · Draft under review</div>
+          </div>
+          <span class="status-chip review">In Review</span>
+        </div>
+        <div class="cc-grid">
+          <div class="cc-field"><div class="cc-label">Contract Value</div><div class="cc-val">$310,000 USD</div></div>
+          <div class="cc-field"><div class="cc-label">Contract Term</div><div class="cc-val">24 Months proposed</div></div>
+          <div class="cc-field"><div class="cc-label">Payment Terms</div><div class="cc-val">Net 60 · TBC</div></div>
+          <div class="cc-field"><div class="cc-label">Delivery Lead Time</div><div class="cc-val">14–21 business days</div></div>
+          <div class="cc-field"><div class="cc-label">Material Certs</div><div class="cc-val">EN 10204 3.1 required</div></div>
+          <div class="cc-field"><div class="cc-label">Price Escalation</div><div class="cc-val">Annual CPI cap ±3%</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ TAB 3: SUPPLIER RELATIONS & COMMS ══════════════════════ -->
+<div class="panel-full" id="tab-comms" style="height:calc(100vh - 62px - 46px - 34px);">
+  <div class="right-topbar" style="border-bottom:1px solid var(--border); flex-shrink:0;">
+    <div>
+      <div class="rt-title">Supplier Relations — Communication & Progress Tracking</div>
+      <div class="rt-sub">Log supplier contacts, track progress, and handle complaints · Maintaining cooperative relationships</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="add-btn" onclick="openCommsModal()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        Log Contact
+      </button>
+    </div>
+  </div>
+  <div class="comms-body" style="flex:1; overflow:hidden;">
+    <div class="comms-left">
+      <div class="section-header" style="padding:16px 18px 10px;">Contacts <span class="req-badge r3">Progress</span></div>
+      <!-- Progress tracker items -->
+      <div style="padding:10px 14px; display:flex; flex-direction:column; gap:6px;" id="comms-progress">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:11px 13px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">Apex Tool Group</div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Last contact: 3 days ago · Phone call</div>
+          <div style="height:6px;background:var(--border);border-radius:4px;overflow:hidden;"><div style="width:80%;height:100%;background:var(--green);border-radius:4px;"></div></div>
+          <div style="font-size:9px;color:var(--green);font-weight:700;margin-top:4px;">80% — Strong relationship</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:11px 13px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">Hubbell Wiring</div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Last contact: 1 week ago · Email</div>
+          <div style="height:6px;background:var(--border);border-radius:4px;overflow:hidden;"><div style="width:55%;height:100%;background:var(--amber);border-radius:4px;"></div></div>
+          <div style="font-size:9px;color:var(--amber);font-weight:700;margin-top:4px;">55% — Follow-up needed</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:11px 13px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">Parker Hannifin</div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Last contact: 2 weeks ago · Video call</div>
+          <div style="height:6px;background:var(--border);border-radius:4px;overflow:hidden;"><div style="width:65%;height:100%;background:var(--blue);border-radius:4px;"></div></div>
+          <div style="font-size:9px;color:var(--blue);font-weight:700;margin-top:4px;">65% — Progressing well</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:11px 13px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">Eaton Corp.</div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Last contact: 3 weeks ago · Email</div>
+          <div style="height:6px;background:var(--border);border-radius:4px;overflow:hidden;"><div style="width:30%;height:100%;background:var(--red);border-radius:4px;"></div></div>
+          <div style="font-size:9px;color:var(--red);font-weight:700;margin-top:4px;">30% — Needs re-engagement</div>
+        </div>
+        <div id="dyn-comms-list"></div>
+      </div>
+    </div>
+    <div class="comms-right">
+
+      <div class="section-div">Communication Log</div>
+
+      <div class="comms-card">
+        <div class="comms-avatar">AT</div>
+        <div style="flex:1">
+          <div class="comms-supplier">Apex Tool Group — Kevin Marsh (Account Mgr)</div>
+          <div class="comms-last">Confirmed Q4 delivery schedule and discussed exclusive SKU bundle pricing for Fastenal stores. Next: send revised PO by Friday.</div>
+          <div class="comms-tags">
+            <span class="comms-tag call">📞 Call</span>
+            <span class="comms-tag resolved">✅ Resolved</span>
+            <span class="comms-tag coord">🔗 Coordination</span>
+          </div>
+        </div>
+        <div class="comms-time">3 days ago</div>
+      </div>
+
+      <div class="comms-card">
+        <div class="comms-avatar">HW</div>
+        <div style="flex:1">
+          <div class="comms-supplier">Hubbell Wiring — Sandra Chen (Sales Rep)</div>
+          <div class="comms-last">Followed up on delayed UL certification documents for the new GFCI outlet line. Issue escalated to quality team. ETA on certs: next week.</div>
+          <div class="comms-tags">
+            <span class="comms-tag email">📧 Email</span>
+            <span class="comms-tag complaint">⚠️ Delay issue</span>
+          </div>
+        </div>
+        <div class="comms-time">1 week ago</div>
+      </div>
+
+      <div class="comms-card">
+        <div class="comms-avatar">PH</div>
+        <div style="flex:1">
+          <div class="comms-supplier">Parker Hannifin — David Okonkwo (Regional Dir.)</div>
+          <div class="comms-last">Video call to review material certificate format. Confirmed EN 10204 3.1 compliance. Contract terms still under negotiation — pricing clause pending legal approval.</div>
+          <div class="comms-tags">
+            <span class="comms-tag call">📹 Video Call</span>
+            <span class="comms-tag coord">🔗 Coordination</span>
+          </div>
+        </div>
+        <div class="comms-time">2 weeks ago</div>
+      </div>
+
+      <div class="section-div">Customer & Internal Complaints</div>
+
+      <div class="complaint-section">
+        <div class="cs-header">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round"><path d="M7 1L13 12H1L7 1z"/><path d="M7 5v4M7 10.5v.5"/></svg>
+          <div class="cs-title">Active Complaints & Issue Tracker</div>
+        </div>
+        <div class="cs-entry">
+          <div class="cs-dot open"></div>
+          <div class="cs-body">
+            <div class="cs-who">OPEN — Fastenal Store #1084 (Atlanta, GA)</div>
+            <div class="cs-desc">Batch of APX-WR-12 wrench sets had missing chrome plating on 3 pieces per set. Customer-facing defect. Returned 48 units. Supplier claim filed.</div>
+            <div class="cs-meta">Logged: 22 Jun 2025 · Priority: High · Assigned to: Bandile Dlamini</div>
+          </div>
+        </div>
+        <div class="cs-entry">
+          <div class="cs-dot resolved"></div>
+          <div class="cs-body">
+            <div class="cs-who">RESOLVED — Fastenal Store #0231 (Dallas, TX)</div>
+            <div class="cs-desc">Hubbell outlet shipment arrived 9 days late causing a store stock-out. Supplier issued credit note and expedited replacement order.</div>
+            <div class="cs-meta">Resolved: 15 Jun 2025 · Credit: $1,200 · Closed</div>
+          </div>
+        </div>
+        <div class="cs-entry">
+          <div class="cs-dot open"></div>
+          <div class="cs-body">
+            <div class="cs-who">OPEN — Internal Complaint — Quality Dept.</div>
+            <div class="cs-desc">Parker Hannifin material certificates for batch PH-2025-06-A missing CMTR (Certified Material Test Report). Cannot accept goods until resolved.</div>
+            <div class="cs-meta">Logged: 25 Jun 2025 · Priority: Critical · Escalated</div>
+          </div>
+        </div>
+        <div id="dyn-complaint-list"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ TAB 4: HQ COORDINATION ══════════════════════ -->
+<div class="panel-full" id="tab-hq" style="height:calc(100vh - 62px - 46px - 34px);">
+  <div class="right-topbar" style="border-bottom:1px solid var(--border); flex-shrink:0;">
+    <div>
+      <div class="rt-title">HQ Coordination & Cross-Department Collaboration</div>
+      <div class="rt-sub">Communicating with headquarters and departments to ensure smooth procurement flow</div>
+    </div>
+  </div>
+  <div class="hq-body">
+
+    <div class="hq-card" style="min-width:300px; flex:1;">
+      <div class="hq-card-head">
+        <div class="hq-icon">
+          <svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M2 6.5h12M6 3v3.5M10 3v3.5"/></svg>
+        </div>
+        <div>
+          <div class="hq-title">Headquarters — Winona, MN</div>
+          <div class="hq-sub">Strategic procurement alignment & approvals</div>
+        </div>
+      </div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Submit weekly procurement status report — active quotes, contract updates, spend vs. budget</div><span class="hq-item-badge">Weekly</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Obtain VP approval for contracts above $100,000 before finalizing terms with suppliers</div><span class="hq-item-badge">Per deal</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Align new supplier additions with HQ category strategy and preferred vendor list</div><span class="hq-item-badge">Ongoing</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Escalate critical quality complaints to HQ Supplier Quality team within 24 hours</div><span class="hq-item-badge">Critical</span></div>
+    </div>
+
+    <div class="hq-card" style="min-width:300px; flex:1;">
+      <div class="hq-card-head">
+        <div class="hq-icon">
+          <svg viewBox="0 0 16 16"><path d="M8 1l7 3.5v8L8 16l-7-3.5V4.5L8 1z"/><path d="M1 4.5l7 3.5 7-3.5M8 8v8"/></svg>
+        </div>
+        <div>
+          <div class="hq-title">Finance & Accounts Payable</div>
+          <div class="hq-sub">Budget control, invoice reconciliation, payment terms</div>
+        </div>
+      </div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Coordinate with AP to confirm PO matching before supplier invoices are approved for payment</div><span class="hq-item-badge">Per PO</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Track early payment discount eligibility (2%/10 net 45 terms) across active contracts</div><span class="hq-item-badge">Daily</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Provide monthly spend analysis by category, supplier, and region to Finance Director</div><span class="hq-item-badge">Monthly</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Submit supplier credit note claims and RMA documentation within 10 business days</div><span class="hq-item-badge">Per claim</span></div>
+    </div>
+
+    <div class="hq-card" style="min-width:300px; flex:1;">
+      <div class="hq-card-head">
+        <div class="hq-icon">
+          <svg viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+        </div>
+        <div>
+          <div class="hq-title">Warehouse & Logistics</div>
+          <div class="hq-sub">Inbound receipts, inventory levels, DC coordination</div>
+        </div>
+      </div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Share PO shipment ETAs and supplier tracking info with Winona DC receiving team</div><span class="hq-item-badge">Per shipment</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Coordinate labeling and packaging requirements for Fastenal vending machine restocking</div><span class="hq-item-badge">Ongoing</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Align safety stock levels with Demand Planning to avoid stock-outs at store level</div><span class="hq-item-badge">Weekly</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Flag inbound quality failures at DC receiving to Quality and Procurement within same day</div><span class="hq-item-badge">Daily</span></div>
+    </div>
+
+    <div class="hq-card" style="min-width:300px; flex:1;">
+      <div class="hq-card-head">
+        <div class="hq-icon">
+          <svg viewBox="0 0 16 16"><path d="M13 10.5a1.5 1.5 0 01-1.5 1.5H4l-3 3V3.5A1.5 1.5 0 012.5 2h9A1.5 1.5 0 0113 3.5v7z"/></svg>
+        </div>
+        <div>
+          <div class="hq-title">Sales & Store Operations</div>
+          <div class="hq-sub">Product availability, pricing feedback, customer satisfaction</div>
+        </div>
+      </div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Receive product gap requests from regional store managers and initiate supplier searches</div><span class="hq-item-badge">As needed</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Share landed cost data with Category Management to align procurement pricing with retail margin targets</div><span class="hq-item-badge">Quarterly</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Communicate supplier allocation constraints or shortages proactively to store operation teams</div><span class="hq-item-badge">Immediate</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Facilitate supplier product training sessions for store staff on new product introductions</div><span class="hq-item-badge">Per launch</span></div>
+    </div>
+
+    <div class="hq-card" style="min-width:300px; flex:1;">
+      <div class="hq-card-head">
+        <div class="hq-icon">
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="5" r="3"/><path d="M3 13s1-3 5-3 5 3 5 3"/><path d="M12 2v4M10 4h4"/></svg>
+        </div>
+        <div>
+          <div class="hq-title">Legal & Compliance</div>
+          <div class="hq-sub">Contract review, trade compliance, certifications</div>
+        </div>
+      </div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Submit all supplier contracts above $50K to Legal for standard review before execution</div><span class="hq-item-badge">Per contract</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Ensure all supplier certifications (UL, ANSI, RoHS, ISO) are valid and filed in the system</div><span class="hq-item-badge">Ongoing</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Report any trade compliance red flags (OFAC, sanctions, country of origin) to Legal immediately</div><span class="hq-item-badge">Immediate</span></div>
+      <div class="hq-item"><div class="hq-bullet"></div><div class="hq-item-text">Maintain NDA and confidentiality agreement records for all active supplier relationships</div><span class="hq-item-badge">Per supplier</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════ TAB 5: NEW SUPPLIERS ══════════════════════ -->
+<div class="panel active app-body" id="tab-suppliers" style="display:none;">
+  <aside class="left-panel">
+    <div class="panel-section">
+      <div class="section-header">Supply Chain Overview <span class="req-badge r3">New Partners</span></div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">New Suppliers YTD</div>
+          <div class="kpi-value">12</div>
+          <div class="kpi-sub">Onboarded this year</div>
+        </div>
+        <div class="kpi-card a">
+          <div class="kpi-label">In Pipeline</div>
+          <div class="kpi-value" id="open-lead-count">—</div>
+          <div class="kpi-sub">Live pipeline count</div>
+        </div>
+        <div class="kpi-card g">
+          <div class="kpi-label">Avg. Onboard Time</div>
+          <div class="kpi-value">34d</div>
+          <div class="kpi-sub">First contact to PO</div>
+        </div>
+        <div class="kpi-card r">
+          <div class="kpi-label">Rejected</div>
+          <div class="kpi-value">8</div>
+          <div class="kpi-sub">Failed qualification</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-header">Fastenal Supplier Requirements <span class="req-badge r3">Criteria</span></div>
+      <div class="support-list">
+        <div class="support-item">
+          <div class="support-icon"><svg viewBox="0 0 16 16"><path d="M8 1l5 2.5v5L8 11 3 8.5v-5L8 1z"/></svg></div>
+          <div style="flex:1">
+            <div class="support-title">Quality Certification</div>
+            <div class="support-desc">ISO 9001:2015 minimum. UL, ANSI, or ASME for tools. RoHS/REACH for electrical. Third-party test reports required before first shipment.</div>
+          </div>
+          <span class="support-tag">Required</span>
+        </div>
+        <div class="support-item">
+          <div class="support-icon"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 8l2 2 4-4"/></svg></div>
+          <div style="flex:1">
+            <div class="support-title">Financial Stability</div>
+            <div class="support-desc">D&B Paydex score ≥ 70. Minimum 3 years trading history. Reference check from 2 existing industrial distributors.</div>
+          </div>
+          <span class="support-tag">Required</span>
+        </div>
+        <div class="support-item">
+          <div class="support-icon"><svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12"/></svg></div>
+          <div style="flex:1">
+            <div class="support-title">Supply Capacity & MOQ</div>
+            <div class="support-desc">Minimum 500-unit MOQ per SKU, with ability to scale to 10,000+ for high-turn items. Fastenal requires consistent fill rates above 95%.</div>
+          </div>
+          <span class="support-tag">Preferred</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-header">Target Regions <span class="req-badge r2">Expansion</span></div>
+      <div class="po-list">
+        <div class="po-row"><span class="po-id">●</span><div class="po-info"><div class="po-item">Midwest USA</div><div class="po-vendor">Manufacturing belt — Ohio, Indiana, Michigan</div></div><span class="po-status confirmed">Active</span></div>
+        <div class="po-row"><span class="po-id">●</span><div class="po-info"><div class="po-item">Southeast USA</div><div class="po-vendor">Expanding industrial base — TX, GA, SC</div></div><span class="po-status pending">Developing</span></div>
+        <div class="po-row"><span class="po-id">●</span><div class="po-info"><div class="po-item">Taiwan / Asia-Pacific</div><div class="po-vendor">Precision tooling & fastener manufacturing</div></div><span class="po-status review">Evaluating</span></div>
+        <div class="po-row"><span class="po-id">●</span><div class="po-info"><div class="po-item">Canada</div><div class="po-vendor">Cross-border supply chain partners</div></div><span class="po-status pending">Developing</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="right-panel right-panel-inner">
+    <div class="right-topbar">
+      <div>
+        <div class="rt-title">New Supplier Development Pipeline</div>
+        <div class="rt-sub">Fastenal, North America's largest fastener distributor · Drag cards to update stage</div>
+        <div class="excel-status" id="excel-status">Showing sample supplier pipeline — import Excel to replace</div>
+      </div>
+      <div class="topbar-actions">
+        <input type="file" id="excel-input" accept=".xlsx,.xls" style="display:none" onchange="importFromExcel(event)">
+        <button class="btn-outline" onclick="document.getElementById('excel-input').click()">
+          <svg width="14" height="14" viewBox="0 0 14 14" stroke-width="1.5"><path d="M7 1v8M3.5 5.5L7 9l3.5-3.5"/><path d="M1 11.5h12v1.5H1z"/></svg>
+          Import Excel
+        </button>
+        <button class="btn-outline" onclick="exportToExcel()">
+          <svg width="14" height="14" viewBox="0 0 14 14" stroke-width="1.5"><path d="M7 9V1M3.5 4.5L7 1l3.5 3.5"/><path d="M1 11.5h12v1.5H1z"/></svg>
+          Export Excel
+        </button>
+        <button class="add-btn" onclick="openModal()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+          Log New Supplier
+        </button>
+      </div>
+    </div>
+
+    <div class="kanban-board">
+      <div class="kb-col col-new">
+        <div class="kb-col-header">New Leads <span class="col-count" id="cnt-new">0</span></div>
+        <div class="kb-col-drop" id="drop-new" ondragover="dragOver(event)" ondrop="drop(event,'new')" ondragleave="dragLeave(event)"></div>
+      </div>
+      <div class="kb-col col-contacted">
+        <div class="kb-col-header">Contacted <span class="col-count" id="cnt-contacted">0</span></div>
+        <div class="kb-col-drop" id="drop-contacted" ondragover="dragOver(event)" ondrop="drop(event,'contacted')" ondragleave="dragLeave(event)"></div>
+      </div>
+      <div class="kb-col col-negotiating">
+        <div class="kb-col-header">Qualifying <span class="col-count" id="cnt-negotiating">0</span></div>
+        <div class="kb-col-drop" id="drop-negotiating" ondragover="dragOver(event)" ondrop="drop(event,'negotiating')" ondragleave="dragLeave(event)"></div>
+      </div>
+      <div class="kb-col col-approved">
+        <div class="kb-col-header">Approved & Onboarded <span class="col-count" id="cnt-approved">0</span></div>
+        <div class="kb-col-drop" id="drop-approved" ondragover="dragOver(event)" ondrop="drop(event,'approved')" ondragleave="dragLeave(event)"></div>
+      </div>
+    </div>
+
+    <div class="issue-log-section">
+      <div class="log-header">Supplier Development Activity Log</div>
+      <div class="log-entries" id="activity-log">
+        <div class="log-entry">
+          <span class="log-time">--:--</span>
+          <span class="log-action">SYSTEM</span>
+          <span class="log-msg">Fastenal Procurement Portal ready — supplier pipeline active</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer class="credit-bar">
+  <span>Made by</span>
+  <span class="credit-name">Bandile Dlamini</span>
+  <span class="credit-dot"></span>
+  <a href="tel:+886900167900">+886 900 167 900</a>
+  <span class="credit-dot"></span>
+  <span>Fastenal Procurement Portal</span>
+</footer>
+
+<!-- ── MODAL: NEW SUPPLIER ── -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">Log New Supplier Lead</div>
+    <div class="modal-sub">Add to the Fastenal supplier development pipeline — tracked from first contact to onboarding</div>
+    <div class="form-group">
+      <label class="form-label">Supplier / Company Name</label>
+      <input class="form-input" id="f-title" placeholder="e.g. Midwest Industrial Fasteners LLC" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Product Category</label>
+        <select class="form-select" id="f-category">
+          <option>Hand Tools</option>
+          <option>Power Tools</option>
+          <option>Fasteners & Anchors</option>
+          <option>Electrical Systems</option>
+          <option>Safety Equipment</option>
+          <option>Raw Materials / Steel</option>
+          <option>Hydraulics & Pneumatics</option>
+          <option>Cutting Tools</option>
+          <option>Welding Supplies</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Priority</label>
+        <select class="form-select" id="f-priority">
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium" selected>Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Region / Location</label>
+        <input class="form-input" id="f-po" placeholder="e.g. Cleveland, OH or Taichung, Taiwan" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Assigned To</label>
+        <input class="form-input" id="f-owner" placeholder="Name or team" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes & Next Action</label>
+      <textarea class="form-textarea" id="f-desc" placeholder="Source of lead, products of interest, certifications held, and next step…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitLead()">Add to Pipeline</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: QUOTE ── -->
+<div class="modal-overlay" id="modal-quote">
+  <div class="modal">
+    <div class="modal-title">Log New Quote</div>
+    <div class="modal-sub">Record a supplier quote — track pricing, terms, and status</div>
+    <div class="form-group">
+      <label class="form-label">Supplier Name</label>
+      <input class="form-input" id="q-supplier" placeholder="e.g. Apex Tool Group" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Product / Category</label>
+        <input class="form-input" id="q-product" placeholder="e.g. Wrench Sets — Hand Tools" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Quote Value (USD)</label>
+        <input class="form-input" id="q-value" type="number" placeholder="e.g. 85000" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Valid Until</label>
+        <input class="form-input" id="q-expiry" type="date" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="q-status">
+          <option value="pending">Pending Review</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="review">In Negotiation</option>
+          <option value="expired">Expired</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea class="form-textarea" id="q-notes" placeholder="Key terms, conditions, deviations from standard, next step…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeQuoteModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitQuote()">Save Quote</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: COMMS ── -->
+<div class="modal-overlay" id="modal-comms">
+  <div class="modal">
+    <div class="modal-title">Log Supplier Contact</div>
+    <div class="modal-sub">Record a communication or complaint — keeps the relationship timeline complete</div>
+    <div class="form-group">
+      <label class="form-label">Supplier Name</label>
+      <input class="form-input" id="c-supplier" placeholder="e.g. Hubbell Wiring" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Contact Person</label>
+        <input class="form-input" id="c-contact" placeholder="Name & role" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select class="form-select" id="c-type">
+          <option>Phone Call</option>
+          <option>Email</option>
+          <option>Video Call</option>
+          <option>In-Person Meeting</option>
+          <option>Complaint Filed</option>
+          <option>Complaint Resolved</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Summary / Outcome</label>
+      <textarea class="form-textarea" id="c-summary" placeholder="What was discussed, agreed, or escalated…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeCommsModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitComms()">Save Contact Log</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CLOCK ──
+function updateClock(){ document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+setInterval(updateClock,1000); updateClock();
+
+// ── TAB SWITCHING ──
+function switchTab(tab){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+
+  const panels = {
+    skills:'tab-skills', quotes:'tab-quotes', comms:'tab-comms', hq:'tab-hq', suppliers:'tab-suppliers'
+  };
+  Object.entries(panels).forEach(([k,id])=>{
+    const el = document.getElementById(id);
+    if(k===tab){ el.style.display = el.classList.contains('panel-full') ? 'flex' : 'flex'; }
+    else { el.style.display = 'none'; }
+  });
+}
+// Init: show only skills panel
+document.querySelectorAll('.panel-full').forEach(p=>p.style.display='none');
+document.getElementById('tab-quotes').style.display='none';
+document.getElementById('tab-comms').style.display='none';
+document.getElementById('tab-hq').style.display='none';
+document.getElementById('tab-suppliers').style.display='none';
+document.getElementById('tab-skills').style.display='flex';
+
+// ── SKILLS SELECTORS ──
+function toggleCat(el, name){
+  el.classList.toggle('selected');
+  updateProfile();
+}
+const expState = {hand:'Mid', elec:'Senior', mat:'Senior'};
+function setExp(key, btn, val){
+  expState[key]=val;
+  btn.parentElement.querySelectorAll('.exp-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  updateProfile();
+}
+function updateProfile(){
+  const cats = [...document.querySelectorAll('#cat-grid .skill-chip.selected')].map(c=>c.querySelector('.skill-chip-label').textContent);
+  const html = cats.map(c=>`<span class="pp-skill">${c}</span>`).join('') +
+    `<span class="pp-skill">Hand Tools · ${expState.hand}</span>` +
+    `<span class="pp-skill">Electrical · ${expState.elec}</span>` +
+    `<span class="pp-skill">Materials · ${expState.mat}</span>`;
+  document.getElementById('profile-skills').innerHTML = html;
+}
+
+// ── KANBAN ──
+let leadCounter=0, draggingId=null;
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderLead(lead){
+  const card = document.createElement('div');
+  card.className='issue-card';
+  card.setAttribute('data-priority',lead.priority);
+  card.setAttribute('data-id',lead.id);
+  card.setAttribute('draggable','true');
+  const pri=lead.priority.charAt(0).toUpperCase()+lead.priority.slice(1);
+  const t=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  card.innerHTML=`
+    <div class="ic-top">
+      <span class="ic-id">SUP-${String(lead.id).padStart(4,'0')}</span>
+      <span class="ic-priority ${lead.priority}">${pri}</span>
+    </div>
+    <div class="ic-type-tag">${escHtml(lead.category)}</div>
+    <div class="ic-title">${escHtml(lead.title)}</div>
+    <div class="ic-meta">
+      <span>${escHtml(lead.region||'—')}</span>
+      <span>${escHtml(lead.owner||'Unassigned')} · ${t}</span>
+    </div>`;
+  card.addEventListener('dragstart',()=>{ draggingId=lead.id; setTimeout(()=>card.classList.add('dragging'),0); });
+  card.addEventListener('dragend',()=>{ card.classList.remove('dragging'); draggingId=null; });
+  return card;
+}
+
+function placeLead(lead){
+  const drop=document.getElementById('drop-'+lead.status);
+  if(drop) drop.appendChild(renderLead(lead));
+  updateCounts();
+}
+function updateCounts(){
+  ['new','contacted','negotiating','approved'].forEach(col=>{
+    const el=document.getElementById('cnt-'+col);
+    if(el) el.textContent=document.getElementById('drop-'+col).children.length;
+  });
+  const open=['new','contacted','negotiating'].reduce((a,c)=>a+document.getElementById('drop-'+c).children.length,0);
+  const oEl=document.getElementById('open-lead-count');
+  if(oEl) oEl.textContent=open;
+}
+function dragOver(e){ e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function dragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+function drop(e,col){
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+  if(draggingId===null) return;
+  const card=document.querySelector(`[data-id="${draggingId}"]`);
+  if(!card) return;
+  document.getElementById('drop-'+col).appendChild(card);
+  updateCounts();
+  const labels={new:'New Lead',contacted:'Contacted',negotiating:'Qualifying',approved:'Approved & Onboarded'};
+  addLog('MOVED',`SUP-${String(draggingId).padStart(4,'0')} → ${labels[col]}`);
+}
+function addLog(action,msg){
+  const log=document.getElementById('activity-log');
+  if(!log) return;
+  const entry=document.createElement('div'); entry.className='log-entry';
+  const t=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  entry.innerHTML=`<span class="log-time">${t}</span><span class="log-action">${action}</span><span class="log-msg">${escHtml(msg)}</span>`;
+  log.prepend(entry);
+}
+function clearBoard(){ ['new','contacted','negotiating','approved'].forEach(col=>{ const el=document.getElementById('drop-'+col); if(el) el.innerHTML=''; }); }
+
+function exportToExcel(){
+  const rows=[];
+  const labels={new:'New Lead',contacted:'Contacted',negotiating:'Qualifying',approved:'Approved & Onboarded'};
+  ['new','contacted','negotiating','approved'].forEach(col=>{
+    document.querySelectorAll('#drop-'+col+' .issue-card').forEach(card=>{
+      rows.push({'Supplier ID':card.querySelector('.ic-id').textContent,'Supplier Name':card.querySelector('.ic-title').textContent,'Category':card.querySelector('.ic-type-tag').textContent,'Priority':card.querySelector('.ic-priority').textContent,'Region':card.querySelectorAll('.ic-meta span')[0].textContent,'Owner':card.querySelectorAll('.ic-meta span')[1].textContent.split(' · ')[0],'Status':labels[col]});
+    });
+  });
+  const ws=XLSX.utils.json_to_sheet(rows);
+  ws['!cols']=[{wch:10},{wch:42},{wch:22},{wch:10},{wch:20},{wch:14},{wch:22}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Supplier Pipeline');
+  XLSX.writeFile(wb,'Fastenal_Supplier_Pipeline.xlsx');
+  addLog('EXPORT',`${rows.length} suppliers exported to Excel`);
+}
+
+const statusKeyMap={'new lead':'new','new':'new','contacted':'contacted','qualifying':'negotiating','in negotiation':'negotiating','negotiating':'negotiating','approved & onboarded':'approved','approved':'approved','onboarded':'approved'};
+function importFromExcel(evt){
+  const file=evt.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=new Uint8Array(e.target.result);
+      const wb=XLSX.read(data,{type:'array'});
+      const sheet=wb.Sheets[wb.SheetNames[0]];
+      const json=XLSX.utils.sheet_to_json(sheet);
+      if(!json.length){ addLog('IMPORT','No rows found in file'); return; }
+      clearBoard(); leadCounter=0;
+      json.forEach(row=>{
+        leadCounter++;
+        const rawStatus=(row['Status']||'New Lead').toString().trim().toLowerCase();
+        const lead={id:leadCounter,title:row['Supplier Name']||row['Title']||'Untitled',category:row['Category']||'Other',priority:(row['Priority']||'medium').toString().trim().toLowerCase(),region:row['Region']||'',owner:row['Owner']||'Unassigned',status:statusKeyMap[rawStatus]||'new'};
+        placeLead(lead);
+      });
+      document.getElementById('excel-status').textContent=`Loaded from "${file.name}" — ${json.length} suppliers`;
+      addLog('IMPORT',`${json.length} suppliers loaded from "${file.name}"`);
+    }catch(err){ addLog('ERROR','Could not read Excel file — check column headers'); }
+  };
+  reader.readAsArrayBuffer(file); evt.target.value='';
+}
+
+// ── MODALS ──
+function openModal(){ document.getElementById('modal').classList.add('open'); document.getElementById('f-title').focus(); }
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  ['f-title','f-po','f-owner','f-desc'].forEach(id=>document.getElementById(id).value='');
+}
+document.getElementById('modal').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeModal(); });
+function submitLead(){
+  const title=document.getElementById('f-title').value.trim(); if(!title){ document.getElementById('f-title').focus(); return; }
+  leadCounter++;
+  const lead={id:leadCounter,title,category:document.getElementById('f-category').value,priority:document.getElementById('f-priority').value,region:document.getElementById('f-po').value.trim(),owner:document.getElementById('f-owner').value.trim()||'Unassigned',status:'new'};
+  placeLead(lead);
+  addLog('LOGGED',`SUP-${String(lead.id).padStart(4,'0')} — ${title.substring(0,50)}`);
+  closeModal();
+}
+
+function openQuoteModal(){ document.getElementById('modal-quote').classList.add('open'); }
+function closeQuoteModal(){ document.getElementById('modal-quote').classList.remove('open'); ['q-supplier','q-product','q-value','q-expiry','q-notes'].forEach(id=>document.getElementById(id).value=''); }
+document.getElementById('modal-quote').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeQuoteModal(); });
+function submitQuote(){
+  const sup=document.getElementById('q-supplier').value.trim(); if(!sup) return;
+  const val=document.getElementById('q-value').value;
+  const status=document.getElementById('q-status').value;
+  const list=document.getElementById('dyn-quote-list');
+  const item=document.createElement('div'); item.className='ql-item';
+  item.onclick=function(){ selectQuote(this); };
+  item.innerHTML=`<div class="ql-name">${escHtml(sup)}</div><div class="ql-type">${escHtml(document.getElementById('q-product').value)}</div><div class="ql-footer"><span class="status-chip ${status}">${status.charAt(0).toUpperCase()+status.slice(1)}</span><span style="font-size:10px;color:var(--muted);">$${Number(val||0).toLocaleString()}</span></div>`;
+  list.appendChild(item);
+  addLog('QUOTE',`${sup} — $${Number(val||0).toLocaleString()} — ${status}`);
+  closeQuoteModal();
+}
+function selectQuote(el){ document.querySelectorAll('.ql-item').forEach(i=>i.classList.remove('active')); el.classList.add('active'); }
+
+function openCommsModal(){ document.getElementById('modal-comms').classList.add('open'); }
+function closeCommsModal(){ document.getElementById('modal-comms').classList.remove('open'); ['c-supplier','c-contact','c-summary'].forEach(id=>document.getElementById(id).value=''); }
+document.getElementById('modal-comms').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeCommsModal(); });
+function submitComms(){
+  const sup=document.getElementById('c-supplier').value.trim(); if(!sup) return;
+  const type=document.getElementById('c-type').value;
+  const summary=document.getElementById('c-summary').value.trim();
+  const contact=document.getElementById('c-contact').value.trim();
+  // Add to comms panel
+  const list=document.getElementById('dyn-comms-list');
+  const card=document.createElement('div'); card.className='comms-card';
+  const initials=sup.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  const tagClass=type.includes('Complaint')?'complaint':type.includes('Email')?'email':type.includes('Video')?'call':'call';
+  card.innerHTML=`<div class="comms-avatar">${initials}</div><div style="flex:1"><div class="comms-supplier">${escHtml(sup)}${contact?' — '+escHtml(contact):''}</div><div class="comms-last">${escHtml(summary)||'No summary provided.'}</div><div class="comms-tags"><span class="comms-tag ${tagClass}">${escHtml(type)}</span></div></div><div class="comms-time">Just now</div>`;
+  list.appendChild(card);
+  addLog('CONTACT',`${sup} — ${type}`);
+  closeCommsModal();
+}
+
+// ── INITIAL LEADS ──
+const initialLeads=[
+  {title:'Channellock Inc. — initial outreach sent, strong tool portfolio',       category:'Hand Tools',           priority:'high',   region:'Meadville, PA',   owner:'Bandile',  status:'new'},
+  {title:'Ideal Industries — replied, scheduling qualification call',              category:'Electrical Systems',   priority:'high',   region:'Sycamore, IL',    owner:'Bandile',  status:'contacted'},
+  {title:'Nucor Steel — material certs requested, samples shipped',                category:'Raw Materials / Steel', priority:'critical',region:'Charlotte, NC',  owner:'Bandile',  status:'negotiating'},
+  {title:'Klein Tools — terms agreed, pending final compliance docs',              category:'Hand Tools',           priority:'medium', region:'Lincolnshire, IL', owner:'Bandile',  status:'approved'},
+  {title:'Phoenix Contact — UL certs verified, first PO drafting in progress',    category:'Electrical Systems',   priority:'medium', region:'Middletown, PA',  owner:'Bandile',  status:'approved'},
+];
+initialLeads.forEach(lead=>{ leadCounter++; lead.id=leadCounter; placeLead(lead); });
+addLog('LOAD','5 supplier leads loaded — Fastenal pipeline ready');
+</script>
+</body>
+</html>
